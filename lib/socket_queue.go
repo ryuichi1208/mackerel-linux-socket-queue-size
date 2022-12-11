@@ -87,6 +87,22 @@ func checkEndian() string {
 	return "other"
 }
 
+/*
+   46: 010310AC:9C4C 030310AC:1770 01
+   |      |      |      |      |   |--> connection state
+   |      |      |      |      |------> remote TCP port number
+   |      |      |      |-------------> remote IPv4 address
+   |      |      |--------------------> local TCP port number
+   |      |---------------------------> local IPv4 address
+   |----------------------------------> number of entry
+
+   00000150:00000000 01:00000019 00000000
+      |        |     |     |       |--> number of unrecovered RTO timeouts
+      |        |     |     |----------> number of jiffies until timer expires
+      |        |     |----------------> timer_active (see below)
+      |        |----------------------> receive-queue
+      |-------------------------------> transmit-queue
+*/
 func (sq *SocketQueue) ParseTcpFile(path string) error {
 	b, err := os.Open(path)
 	if err != nil {
@@ -195,6 +211,10 @@ func Run() error {
 func parseArgs(args []string) error {
 	_, err := flags.ParseArgs(&opts, os.Args)
 
+	if opts.IP == "localhost" {
+		opts.IP = "127.0.0.1"
+	}
+
 	if err != nil {
 		return err
 	}
@@ -203,7 +223,9 @@ func parseArgs(args []string) error {
 }
 
 func Do() {
-	parseArgs(os.Args[1:])
+	if parseArgs(os.Args[1:]) != nil {
+		os.Exit(1)
+	}
 
 	if Run() != nil {
 		os.Exit(1)
