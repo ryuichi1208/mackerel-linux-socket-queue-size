@@ -7,7 +7,7 @@ host = '192.168.1.182'
 port = 9000
 bind_address = (host, port)
 
-backlog_size = 1
+backlog_size = 10
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
     server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
